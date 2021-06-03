@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans&display=swap');
+
+*{
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.client-box{
+  width: 300px;
+  height: 300px;
+  padding-top: 10px;
+  padding-left: 25px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  border-radius: 15px;
+}
+
+button{
+  margin-top: 40px;
+  border: none;
+  font-weight: bold;
+  font-size: 16px;
+  width: 120px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+button:hover{
+  background-color: rgba(126, 126, 126, 0.5);
+  cursor: pointer;
+}
+
+button:active{
+  background-color: rgba(126, 126, 126, 0.651);
+  cursor: default;
+}

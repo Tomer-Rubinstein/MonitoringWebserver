@@ -1,0 +1,47 @@
+
+{% macro boldNText(type, text) -%}
+<div style="display: flex; align-items: center; height: 25px;">
+  <p style="font-weight: bold; padding-right: 5px;">{{type}}:</p>
+  <p>{{text}}</p>
+
+
+</div>
+{%- endmacro %}
+
+
+{% macro clientBox(cpuType, ram, user, usage, memory) -%}
+<div class="client-box" style="margin-bottom: 35px;">
+  <div style="display: flex; align-items: center;">
+    <h1>{{user}}</h1>
+    <img style="width: 60; height: 60px; padding-left: 25px;" src="https://img-premium.flaticon.com/png/512/518/518713.png?token=exp=1622396135~hmac=ae7a841601859a3df903089633ef21ce" alt="Linux OS"/>
+  </div>
+  {{boldNText("CPU", cpuType)}}
+  {{boldNText("Ram", ram)}}
+  {{boldNText("Memory", memory)}}
+  {{boldNText("CPU Usage", usage+"%")}}
+  <Button>Processes</Button>
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("button").click(function(){
+        $("#var").html("hello");
+      });
+    });
+  </script>
+</div>
+{%- endmacro %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard</title>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/DashboardStyle.css') }}">
+  </head>
+  <body id="body">
+    <h1 id="var"></h1>
+    <h1 style="font-size: 44px;">Clients</h1>
+    {{clientBox("Intel x86 @ 64bit", "10MB", "t0m3r", "13", "1TB")}}
+    {{clientBox("Intel x86 @ 64bit", "10MB", "t0m3r", "13", "1TB")}}
+  </body>
+</html>
