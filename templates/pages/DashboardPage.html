@@ -13,7 +13,7 @@
 <div class="client-box" style="margin-bottom: 35px;">
   <div style="display: flex; align-items: center;">
     <h1>{{user}}</h1>
-    <img style="width: 60; height: 60px; padding-left: 25px;" src="https://img-premium.flaticon.com/png/512/518/518713.png?token=exp=1622396135~hmac=ae7a841601859a3df903089633ef21ce" alt="Linux OS"/>
+    <img style="width: 60; height: 60px; padding-left: 25px;" src="https://image.flaticon.com/icons/png/512/518/518713.png" alt="Linux OS"/>
   </div>
   {{boldNText("CPU", cpuType)}}
   {{boldNText("Ram", ram)}}
@@ -24,24 +24,66 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
   <script>
     $(document).ready(function(){
+
       $("button").click(function(){
         $("#var").html("hello");
       });
+      
     });
   </script>
 </div>
 {%- endmacro %}
 
+
+
+
 <!DOCTYPE html>
 <html>
   <head>
     <title>Dashboard</title>
-    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/DashboardStyle.css') }}">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='styles/DashboardStyle.css') }}">
   </head>
   <body id="body">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+
+    <script>
+      $(document).ready(function(){
+        setInterval(function(){
+          $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: window.location.origin+"/getData",
+            success: function(data){
+              console.log(data);
+              var $listElem = $('body').find('ul');
+              $listElem.empty();
+              $.each(data, function(j, client){
+                $.each(client, function(i, item) {
+                  $('<li />').append(
+                    $('<div/>').addClass('client-box').attr('style', 'margin-bottom: 35px;').append(
+                      $('<div/>').attr("style", "display: flex; align-items: center;").append(
+                        $("<h1/>").text(item[0]),
+                        $("<img/>").attr("style", "width: 60; height: 60px; padding-left: 25px;").attr("src", "https://image.flaticon.com/icons/png/512/518/518713.png").attr("alt", "Linux OS")
+                      ),
+                      
+                      $('<p/>').attr("style", "font-weight: bold; padding-right: 5px; margin: 5px;").text(item[1]),
+                      $('<p/>').attr("style", "font-weight: bold; padding-right: 5px; margin: 5px;").text("CPU Usage: " + item[2] + "%"),
+                      $('<p/>').attr("style", "font-weight: bold; padding-right: 5px; margin: 5px;").text("Memory: " + item[3]),
+                      $('<p/>').attr("style", "font-weight: bold; padding-right: 5px; margin: 5px;").text(item[4]),
+                      $("<button/>").text("Processes"),
+                    )
+                  ).appendTo($listElem).trigger('create');
+                });
+              });
+            }
+          });
+        }, 5000);
+        
+      });
+    </script>
+
     <h1 id="var"></h1>
     <h1 style="font-size: 44px;">Clients</h1>
-    {{clientBox("Intel x86 @ 64bit", "10MB", "t0m3r", "13", "1TB")}}
-    {{clientBox("Intel x86 @ 64bit", "10MB", "t0m3r", "13", "1TB")}}
+    <ul style="list-style-type: none"/>
   </body>
 </html>
