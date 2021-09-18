@@ -2,10 +2,10 @@ from flask import Flask, render_template, request, jsonify, Response
 from DB_Utils import *
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db' # TODO: In production, change to a postgres db
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-isAuthed = False # WARNING: global variables are not allowed!
+isAuthed = False # TODO: create authentication and authorization instead of this global var
 
 @app.route("/", methods=["GET"])
 def homepage():
@@ -23,16 +23,18 @@ def homepage_post():
   
   return render_template("pages/Homepage.html", error=True)
 
+
 @app.route("/api", methods=["POST"])
 def api():
+  print("length", request.content_length)
+
   cpuType = request.form.get('cpuType')
-  ram = request.form.get('ram')
-  memory = ram
+  memory = request.form.get('ram')
   user = request.form.get('username')
   cpuUsage = request.form.get('cpuUsage')
   procs = request.form.get('processes')
 
-  print(cpuType, ram, user, cpuUsage, memory, procs)
+  print(cpuType, user, cpuUsage, memory, procs)
 
   client = Client(
     user=user, 
@@ -42,11 +44,10 @@ def api():
     procs=procs,
   )
   client.addClient()
-
   Client.query.all()
+
   return jsonify({
     "cpuType": cpuType,
-    "ram": ram,
     "user": user,
     "cpuUsage": cpuUsage,
     "memory": memory,
