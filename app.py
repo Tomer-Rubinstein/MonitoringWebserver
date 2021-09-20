@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, jsonify, Response
 from DB_Utils import *
 
+from datetime import datetime
+from dateutil import parser
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -26,15 +29,20 @@ def homepage_post():
 
 @app.route("/api", methods=["POST"])
 def api():
-  print("length", request.content_length)
-
   cpuType = request.form.get('cpuType')
   memory = request.form.get('ram')
   user = request.form.get('username')
   cpuUsage = request.form.get('cpuUsage')
   procs = request.form.get('processes')
+  timestamp = str(datetime.now())
 
-  print(cpuType, user, cpuUsage, memory, procs)
+  print("\t", cpuType, user, cpuUsage, memory, procs, timestamp)
+
+  if cpuUsage == "0.0":
+    cpuUsage = "Calculating..."
+  else:
+    cpuUsage += "%"
+
 
   client = Client(
     user=user, 
@@ -42,6 +50,7 @@ def api():
     cpuUsage=cpuUsage,
     memory=memory,
     procs=procs,
+    timestamp=timestamp
   )
   client.addClient()
   Client.query.all()
@@ -52,6 +61,7 @@ def api():
     "cpuUsage": cpuUsage,
     "memory": memory,
     "processes": procs,
+    "timestamp": timestamp,
   })
 
 
@@ -61,7 +71,13 @@ def getDataEndpoint():
   if not isAuthed:
     return "Sorry, you seem to have no permission to visit this page :("
 
-  clients = [(i.user, i.cpuType, i.cpuUsage, i.memory, i.procs) for i in Client.query.all()]
+  clients = [(i.user, i.cpuType, i.cpuUsage, i.memory, i.procs, i.timestamp, i.id) for i in Client.query.all()]
+
+  for client in clients:
+    if(client[5] != None and (datetime.now()-parser.parse(client[5])).seconds >= 7):
+      clients.remove(client)                            # remove from the return value
+      db.session.query(Client).filter_by(id=client[6]).delete() # remove from the database
+
   return jsonify(clients=clients)
 
 if __name__ == "__main__":
