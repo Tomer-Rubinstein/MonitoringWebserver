@@ -1,31 +1,80 @@
 from flask import Flask, render_template, request, jsonify, Response
+from flask_jwt import jwt_required
 from DB_Utils import *
 
 from datetime import datetime
 from dateutil import parser
 
+from flask_jwt import JWT, jwt_required, current_identity
+from werkzeug.security import safe_str_cmp
+from users import *
+
+import requests
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'gfjijk345jkfd,xz'
 
-isAuthed = False # TODO: create authentication and authorization instead of this global var
+getDataPerms = False
 
-@app.route("/", methods=["GET"])
+"""
+  if username exists and password matches, return the user object
+  params:
+    - username(string), the user to log in to
+    - password(string), used to check if the request has authorization to login to that user
+"""
+def authenticate(username, password) -> User:
+  print(username, password)
+  user = users_table.get(username, None) # using a dictionary for easier lookup
+  if user and safe_str_cmp(password.encode("utf-8"), "toor"):
+    return user
+  return None
+
+
+"""
+ return user object by his ID
+ params:
+   - payload: the jwt token
+"""
+def identity(payload) -> User:
+  id = payload['identity']
+  return users_id.get(id, None)
+
+
+jwt = JWT(app, authenticate, identity)
+
+
+
+
+
+@app.route("/", methods=["GET", "POST"])
 def homepage():
-  return render_template("pages/Homepage.html") # was: pages/DashboardPage.html
+  return render_template("pages/Homepage.html")
 
-@app.route("/", methods=["POST", "GET"])
-def homepage_post():
-  global isAuthed
-  username = request.form['username']
-  password = request.form['password']
 
-  if username == "root" and password == "toor":
-    isAuthed = True
-    return render_template("pages/DashboardPage.html")
+@app.route("/login", methods=["POST"])
+def sendLoginInfo():
+  username = request.form.get("username")
+  password = request.form.get("password")
+  dest = request.host_url + "auth"
+
+  r = requests.post(dest, json={"username": username, "password": password})
+  token = "JWT " + r.json()["access_token"]
+
+  dest = request.host_url + "dashboard"
+  r = requests.get(dest, headers={"Authorization": token})
+
+  return r.text
+
+
+@app.route("/dashboard")
+@jwt_required()
+def dashboard():
+  global getDataPerms
+  getDataPerms = True
+  return render_template("pages/DashboardPage.html")
   
-  return render_template("pages/Homepage.html", error=True)
-
 
 @app.route("/api", methods=["POST"])
 def api():
@@ -67,18 +116,19 @@ def api():
 
 @app.route("/getData", methods=["GET"])
 def getDataEndpoint():
-  global isAuthed
-  if not isAuthed:
-    return "Sorry, you seem to have no permission to visit this page :("
-
+  global getDataPerms
+  if not getDataPerms:
+      return "No permmisions"
   clients = [(i.user, i.cpuType, i.cpuUsage, i.memory, i.procs, i.timestamp, i.id) for i in Client.query.all()]
 
   for client in clients:
     if(client[5] != None and (datetime.now()-parser.parse(client[5])).seconds >= 7):
-      clients.remove(client)                            # remove from the return value
+      clients.remove(client)                                    # remove from the return value
       db.session.query(Client).filter_by(id=client[6]).delete() # remove from the database
 
   return jsonify(clients=clients)
+
+
 
 if __name__ == "__main__":
   db.init_app(app)
