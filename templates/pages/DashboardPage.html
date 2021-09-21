@@ -52,6 +52,7 @@
             type: "GET",
             dataType: "json",
             url: window.location.origin+"/getData",
+            headers: {"Authorization": "{{token}}"},
             success: function(data){
               console.log(data);
               var $listElem = $('body').find('ul');

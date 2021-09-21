@@ -11,12 +11,13 @@ from users import *
 
 import requests
 
+# refactor, review and document the code base
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'gfjijk345jkfd,xz'
+app.config['SECRET_KEY'] = 'gfjijk345jkfd,xz' # [TODO] create an environment variable
 
-getDataPerms = False
 
 """
   if username exists and password matches, return the user object
@@ -53,7 +54,7 @@ def homepage():
   return render_template("pages/Homepage.html")
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/dashboard", methods=["POST"])
 def sendLoginInfo():
   username = request.form.get("username")
   password = request.form.get("password")
@@ -62,19 +63,33 @@ def sendLoginInfo():
   r = requests.post(dest, json={"username": username, "password": password})
   token = "JWT " + r.json()["access_token"]
 
-  dest = request.host_url + "dashboard"
+  dest = request.host_url + "login"
   r = requests.get(dest, headers={"Authorization": token})
 
   return r.text
 
 
-@app.route("/dashboard")
+@app.route("/login")
 @jwt_required()
 def dashboard():
-  global getDataPerms
-  getDataPerms = True
-  return render_template("pages/DashboardPage.html")
+  return render_template("pages/DashboardPage.html", token=request.headers.get("Authorization"))
   
+
+
+@app.route("/getData")
+@jwt_required()
+def getDataEndpoint():
+  clients = [(i.user, i.cpuType, i.cpuUsage, i.memory, i.procs, i.timestamp, i.id) for i in Client.query.all()]
+
+  for client in clients:
+    if(client[5] != None and (datetime.now()-parser.parse(client[5])).seconds >= 7):
+      clients.remove(client)                                    # remove from the return value
+      db.session.query(Client).filter_by(id=client[6]).delete() # remove from the database
+      db.session.commit()
+
+  return jsonify(clients=clients)
+
+
 
 @app.route("/api", methods=["POST"])
 def api():
@@ -112,21 +127,6 @@ def api():
     "processes": procs,
     "timestamp": timestamp,
   })
-
-
-@app.route("/getData", methods=["GET"])
-def getDataEndpoint():
-  global getDataPerms
-  if not getDataPerms:
-      return "No permmisions"
-  clients = [(i.user, i.cpuType, i.cpuUsage, i.memory, i.procs, i.timestamp, i.id) for i in Client.query.all()]
-
-  for client in clients:
-    if(client[5] != None and (datetime.now()-parser.parse(client[5])).seconds >= 7):
-      clients.remove(client)                                    # remove from the return value
-      db.session.query(Client).filter_by(id=client[6]).delete() # remove from the database
-
-  return jsonify(clients=clients)
 
 
 
