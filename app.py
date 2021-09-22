@@ -46,9 +46,6 @@ def identity(payload) -> User:
 jwt = JWT(app, authenticate, identity)
 
 
-
-
-
 @app.route("/", methods=["GET", "POST"])
 def homepage():
   return render_template("pages/Homepage.html")

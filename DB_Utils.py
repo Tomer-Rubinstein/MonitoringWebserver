@@ -23,6 +23,8 @@ class Client(db.Model):
       _user.memory = self.memory
       _user.procs = self.procs
       _user.timestamp = self.timestamp
+      _user.user = self.user
+      _user.cpuType = self.cpuType
       db.session.commit()
       return
     
