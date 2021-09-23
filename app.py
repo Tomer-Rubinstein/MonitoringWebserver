@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, Response, redirect
 from flask_jwt import jwt_required
 from DB_Utils import *
 
@@ -52,28 +52,32 @@ def homepage():
 
 
 @app.route("/dashboard", methods=["POST"])
-def sendLoginInfo():
+def dashboard():
   username = request.form.get("username")
   password = request.form.get("password")
   dest = request.host_url + "auth"
 
   r = requests.post(dest, json={"username": username, "password": password})
-  token = "JWT " + r.json()["access_token"]
 
-  dest = request.host_url + "login"
+  if r.status_code == 401:
+    return redirect(request.host_url, code=303)
+
+  token = "JWT " + r.json().get("access_token")
+
+  dest = request.host_url + "panelContent"
   r = requests.get(dest, headers={"Authorization": token})
 
   return r.text
 
 
-@app.route("/login")
+@app.route("/panelContent")
 @jwt_required()
-def dashboard():
+def panelContent():
   return render_template("pages/DashboardPage.html", token=request.headers.get("Authorization"))
   
 
 
-@app.route("/getData")
+@app.route("/getData", methods=["GET"])
 @jwt_required()
 def getDataEndpoint():
   clients = [(i.user, i.cpuType, i.cpuUsage, i.memory, i.procs, i.timestamp, i.id) for i in Client.query.all()]
@@ -98,12 +102,6 @@ def api():
   timestamp = str(datetime.now())
 
   print("\t", cpuType, user, cpuUsage, memory, procs, timestamp)
-
-  if cpuUsage == "0.0":
-    cpuUsage = "Calculating..."
-  else:
-    cpuUsage += "%"
-
 
   client = Client(
     user=user, 

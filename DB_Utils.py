@@ -3,9 +3,6 @@ from app import app
 
 db = SQLAlchemy(app)
 
-# TODO: When the client disconnects from the webserver, delete him from the db.
-# ^ solution: do it in the frontend, if no update in 15 seconds, remove from db.
-
 class Client(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   user = db.Column(db.String(20), nullable=False)
