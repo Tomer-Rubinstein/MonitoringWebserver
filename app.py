@@ -1,3 +1,4 @@
+from logging import error
 from flask import Flask, render_template, request, jsonify, Response, redirect
 from flask_jwt import jwt_required
 from DB_Utils import *
@@ -7,16 +8,14 @@ from dateutil import parser
 
 from flask_jwt import JWT, jwt_required, current_identity
 from werkzeug.security import safe_str_cmp
-from users import *
 
 import requests
-
-# refactor, review and document the code base
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'gfjijk345jkfd,xz' # [TODO] create an environment variable
+app.config['SECRET_KEY'] = os.environ['MONITORING_KEY']
 
 
 """
@@ -25,10 +24,10 @@ app.config['SECRET_KEY'] = 'gfjijk345jkfd,xz' # [TODO] create an environment var
     - username(string), the user to log in to
     - password(string), used to check if the request has authorization to login to that user
 """
-def authenticate(username, password) -> User:
+def authenticate(username, password):
   print(username, password)
   user = users_table.get(username, None) # using a dictionary for easier lookup
-  if user and safe_str_cmp(password.encode("utf-8"), "toor"):
+  if user and safe_str_cmp(password.encode("utf-8"), user.password.encode("utf-8")):
     return user
   return None
 
@@ -38,7 +37,7 @@ def authenticate(username, password) -> User:
  params:
    - payload: the jwt token
 """
-def identity(payload) -> User:
+def identity(payload):
   id = payload['identity']
   return users_id.get(id, None)
 
@@ -49,6 +48,22 @@ jwt = JWT(app, authenticate, identity)
 @app.route("/", methods=["GET", "POST"])
 def homepage():
   return render_template("pages/Homepage.html")
+
+@app.route("/register")
+def regiter():
+  return render_template("pages/RegistrationPage.html")
+
+@app.route("/registerUser", methods=["POST"])
+def registerUser():
+  username = request.form.get("username")
+  password = request.form.get("password")
+
+  newUser = User(username=username, password=password)
+  if newUser.addUser() == 1:
+    errorLog = f"Username \"{username}\" already exists"
+    return jsonify(error=errorLog, status=208)
+
+  return jsonify(status=201)
 
 
 @app.route("/dashboard", methods=["POST"])
@@ -112,7 +127,6 @@ def api():
     timestamp=timestamp
   )
   client.addClient()
-  Client.query.all()
 
   return jsonify({
     "cpuType": cpuType,

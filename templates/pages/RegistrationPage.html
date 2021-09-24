@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/RegistrationPageStyle.css') }}">
+    <title>Monitoring &mdash; Register</title>
+  </head>
+  <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+
+    <script>
+      
+      function throwError(errorMsg){
+        document.getElementById("error-log").textContent = errorMsg;
+      }
+
+      // trim() does not work for some reason
+      function strip(str){
+        str = str.replace("\t", "");
+        str = str.replace(" ", "");
+        return str;
+      }
+
+      function registerUser(e){
+        e.preventDefault();
+
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+        var rePassword = document.getElementById("re-password").value;
+
+
+        if(password !== rePassword){
+          throwError("Passwords don't match");
+        }else if(strip(username) === ""){
+          throwError("Username cannot be empty");
+        }else if(strip(username).length != username.length){
+          throwError("Username cannot contain whitespaces");
+        }else if(strip(password).length != password.length){
+          throwError("Password cannot contain whitespaces");
+        }else if(strip(password) === ""){
+          throwError("Password cannot be empty");
+        }else{
+          document.getElementById("error-log").textContent = "";
+          $.post(window.location.origin+"/registerUser", {username: username, password: password}, (data, status)=>{
+            if(data["status"] == 208){
+              throwError(data["error"]);
+            }
+          });
+        }
+      }
+
+    </script>
+
+    <div class="main">
+      <h1>Register</h1>
+      <p>Create a new user by providing a username and a password</p>
+      <div class="register-card">
+        <form onsubmit="return registerUser(event)">
+          <input type="text" id="username" name="username" placeholder="Username"><br><br>
+          <input type="password" id="password" name="password" placeholder="Password"><br><br>
+          <input type="password" id="re-password" name="re-password" placeholder="Retype Password"><br><br>
+          <input id="button" type="submit" value="Submit">
+        </form>
+        <h3 style="color: red;" id="error-log"></h3>
+      </div>
+
+      
+    </div>
+
+  </body>
+</html>

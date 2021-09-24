@@ -38,3 +38,28 @@ class Client(db.Model):
 
   def __repr__(self):
     return f"Client({self.id}, {self.user}, {self.cpuUsage}, {self.memory})"
+
+
+class User(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  username = db.Column(db.String(20), nullable=False)
+  password = db.Column(db.String(25), nullable=False)
+
+  def addUser(self):
+    # Update values for user if the user exists on the db
+    if User.query.filter_by(username=self.username).first() is not None:
+      return 1
+    
+    u = User(
+      username=self.username,
+      password=self.password
+    )
+    db.session.add(u)
+    db.session.commit()
+    return 0
+
+
+users = [u for u in User.query.all()]
+
+users_table = {u.username: u for u in users}
+users_id    = {u.id: u for u in users}
