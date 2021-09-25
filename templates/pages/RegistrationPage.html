@@ -43,6 +43,9 @@
           $.post(window.location.origin+"/registerUser", {username: username, password: password}, (data, status)=>{
             if(data["status"] == 208){
               throwError(data["error"]);
+            }else{
+              window.location.href = window.location.origin;
+              alert("User has been created successfully!");
             }
           });
         }
@@ -54,6 +57,7 @@
       <h1>Register</h1>
       <p>Create a new user by providing a username and a password</p>
       <div class="register-card">
+        
         <form onsubmit="return registerUser(event)">
           <input type="text" id="username" name="username" placeholder="Username"><br><br>
           <input type="password" id="password" name="password" placeholder="Password"><br><br>
@@ -61,9 +65,11 @@
           <input id="button" type="submit" value="Submit">
         </form>
         <h3 style="color: red;" id="error-log"></h3>
+
       </div>
 
-      
+      <p style="font-size: 14px; padding-top: 30px;">Already have a user? <a href="/" class="login-link">sign in</a></p>
+
     </div>
 
   </body>

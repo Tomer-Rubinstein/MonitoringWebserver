@@ -15,7 +15,7 @@ import os
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ['MONITORING_KEY']
+app.config['SECRET_KEY'] = os.environ['USERNAME']
 
 
 """

@@ -36,6 +36,7 @@ input{
   outline: none;
   border: none;
   padding-left: 10px;
+  transition: 0.3s;
 }
 
 input:hover{
@@ -44,4 +45,15 @@ input:hover{
 
 input:focus{
   background-color: rgba(128, 128, 128, 0.555);
+}
+
+
+.login-link{
+  color: rgb(94, 94, 230);
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.login-link:hover{
+  background-color: rgba(128, 128, 128, 0.205);
 }
